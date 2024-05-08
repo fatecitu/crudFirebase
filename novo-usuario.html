@@ -33,19 +33,19 @@
           <div class="card shadow-lg rounded">
             <div class="text-center">
               <img
-                src="images/login.svg"
-                alt="Efetuar o login"
-                title="Login"
+                src="images/usuario.svg"
+                alt="Cadastrar novo usuário"
+                title="Novo usuário"
                 class="w-25"
               />
             </div>
             <div class="card-header">
               <h5 class="card-title text-primary">
-                <i class="bi bi-key-fill"></i> Área Reservada
+                <i class="bi bi-key-fill"></i> Novo Usuário
               </h5>
             </div>
             <div class="card-body">
-              <form id="formLogin">
+              <form id="formUsuario">
                 <div class="form-group">
                   <label for="email">E-mail</label>
                   <input
@@ -71,15 +71,15 @@
                 <div class="form-group mt-4">
                     
                     <button type="submit" class="btn btn-success"
-                    title="Efetue o login com o seu usuário e senha"><i class="bi bi-file-lock"></i> Login</button>
+                    title="Cadastre um novo usuário"><i class="bi bi-file-lock"></i> Cadastrar</button>
                     
-                    <button type="button" id="loginGoogle" class="btn btn-primary" title="Efetue o login com o Google"><i class="bi bi-google"></i> Logar com o Google</button>
+                    
 
                 </div>
               </form>
               <div id="mensagemAlerta"></div>
               <div class="my-2">
-              <a href="novo-usuario.html" >Ainda não tem uma conta?</a>
+              <a href="index.html" >Já tem um usuário? Efetue o login</a>
             </div>
             </div>
           </div>
@@ -95,6 +95,6 @@
      <script src="js/firebase/firebase.js"></script>
      <script src="js/firebase/authentication.js"></script>
      <script src="js/util/alerta.js"></script>   
-     <script src="js/view/login.js"></script>  
+     <script src="js/view/usuario.js"></script>  
   </body>
 </html>
