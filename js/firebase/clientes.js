@@ -31,9 +31,7 @@ document.getElementById('formCliente')
 
 async function incluir(event, collection, dados){
     event.preventDefault()
-    return await firebase.database().ref(collection).push({
-        dados
-    })
+    return await firebase.database().ref(collection).push(dados)
     .then(()=> {
         alerta('✅Cliente incluído com sucesso!','success')
         document.getElementById('formCliente').reset()//limpa
@@ -42,3 +40,55 @@ async function incluir(event, collection, dados){
         alerta('❌Falha ao incluir: '+error.message,'danger')
     })
 }
+
+
+
+/**
+ * remover.
+ * Remove os dados da collection a partir do id passado.
+ * @param {string} db - Nome da collection no Firebase
+ * @param {integer} id - Id do registro no Firebase
+ * @return {null} - Snapshot atualizado dos dados
+ */
+async function remover(db, id) {
+    if (window.confirm("⚠️Confirma a exclusão do registro?")) {
+      let dadoExclusao = await firebase.database().ref().child(db + '/' + id)
+      dadoExclusao.remove()
+        .then(() => {
+          alerta('✅ Registro removido com sucesso!', 'success')
+        })
+        .catch(error => {
+          console.error(error.code)
+          console.error(error.message)
+          alerta('❌ Falha ao excluir: ' + error.message, 'danger')
+        })
+    }
+  }
+
+/**
+ * Filtra os elementos de uma tabela com base no valor inserido em um campo de filtro.
+ *
+ * @param {string} idFiltro - O ID do campo de filtro de entrada.
+ * @param {string} idTabela - O ID da tabela que será filtrada.
+ */
+function filtrarTabela(idFiltro, idTabela) {
+    var input, filter, table, tr, td, i, j, txtValue;
+    input = document.getElementById(idFiltro);
+    filter = input.value.toUpperCase();
+    table = document.getElementById(idTabela);
+    tr = table.getElementsByTagName("tr");
+  
+    for (i = 1; i < tr.length; i++) {
+      tr[i].style.display = "none"; // Oculte todas as linhas do corpo da tabela inicialmente.
+      for (j = 0; j < tr[i].cells.length; j++) {
+        td = tr[i].cells[j];
+        if (td) {
+          txtValue = td.textContent || td.innerText;
+          if (txtValue.toUpperCase().indexOf(filter) > -1) {
+            tr[i].style.display = ""; // Exiba a linha se houver correspondência.
+            break; // Saia do loop interno quando encontrar uma correspondência.
+          }
+        }
+      }
+    }
+  }
