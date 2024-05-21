@@ -1,94 +1,154 @@
 document.getElementById('formCliente')
-        .addEventListener('submit', function(event){
-            event.preventDefault() //evita recarregar
-        //efetuando validações
-        if(document.getElementById('nome').value.length < 5 ){
-            alerta('⚠ O nome é muito curto!','warning')
-            document.getElementById('nome').focus()
-        } else if(document.getElementById('nome').value.length > 100 ){
-            alerta('⚠ O nome é muito longo!','warning')
-            document.getElementById('nome').focus()
-        }   
-        //criando o objeto cliente
-        //campo sexo
-        let sexoSelecionado = ''
-        if(document.getElementById('sexo-0').checked){
-            sexoSelecionado = 'Masculino'
-        } else {sexoSelecionado = 'Feminino'}
-       
-        const dadosCliente = {
-            nome: document.getElementById('nome').value,
-            email: document.getElementById('email').value,
-            nascimento: document.getElementById('nascimento').value,
-            peso: document.getElementById('peso').value,
-            altura: document.getElementById('altura').value,
-            sexo: sexoSelecionado
-        } 
-        //testando...
-        //alert(JSON.stringify(dadosCliente))
-        incluir(event, 'clientes', dadosCliente)
-        })
+  .addEventListener('submit', function (event) {
+    event.preventDefault() //evita recarregar
+    //efetuando validações
+    if (document.getElementById('nome').value.length < 5) {
+      alerta('⚠ O nome é muito curto!', 'warning')
+      document.getElementById('nome').focus()
+    } else if (document.getElementById('nome').value.length > 100) {
+      alerta('⚠ O nome é muito longo!', 'warning')
+      document.getElementById('nome').focus()
+    }
+    //criando o objeto cliente
+    //campo sexo
+    let sexoSelecionado = ''
+    if (document.getElementById('sexo-0').checked) {
+      sexoSelecionado = 'Masculino'
+    } else { sexoSelecionado = 'Feminino' }
 
-async function incluir(event, collection, dados){
-    event.preventDefault()
-    return await firebase.database().ref(collection).push(dados)
-    .then(()=> {
-        alerta('✅Cliente incluído com sucesso!','success')
-        document.getElementById('formCliente').reset()//limpa
+    const dadosCliente = {
+      nome: document.getElementById('nome').value,
+      email: document.getElementById('email').value,
+      nascimento: document.getElementById('nascimento').value,
+      peso: document.getElementById('peso').value,
+      altura: document.getElementById('altura').value,
+      sexo: sexoSelecionado
+    }
+    //testando...
+    //alert(JSON.stringify(dadosCliente))
+
+    if (document.getElementById('id').value !== '') { //Se existir algo, iremos alterar,
+      alterar(event, 'clientes', dadosCliente, document.getElementById('id').value)
+    } else {
+      incluir(event, 'clientes', dadosCliente)
+    }
+  })
+
+async function incluir(event, collection, dados) {
+  event.preventDefault()
+  return await firebase.database().ref(collection).push(dados)
+    .then(() => {
+      alerta('✅Cliente incluído com sucesso!', 'success')
+      document.getElementById('formCliente').reset()//limpa
     })
     .catch(error => {
-        alerta('❌Falha ao incluir: '+error.message,'danger')
+      alerta('❌Falha ao incluir: ' + error.message, 'danger')
     })
 }
 
+async function alterar(event, collection, dados, id) {
+  event.preventDefault()
+  return await firebase.database().ref().child(collection + '/' + id).update(dados)
+    .then(() => {
+      alerta('✅Cliente alterado com sucesso!', 'success')
+      document.getElementById('formCliente').reset()//limpa
+    })
+    .catch(error => {
+      alerta('❌Falha ao alterar: ' + error.message, 'danger')
+    })
+}
 
+async function obtemClientes() {
+  let spinner = document.getElementById('carregandoDados')
+  let tabela = document.getElementById('tabelaDados')
 
-/**
- * remover.
- * Remove os dados da collection a partir do id passado.
- * @param {string} db - Nome da collection no Firebase
- * @param {integer} id - Id do registro no Firebase
- * @return {null} - Snapshot atualizado dos dados
- */
+  await firebase.database().ref('clientes').orderByChild('nome').on('value', (snapshot) => {
+    tabela.innerHTML = ''
+    tabela.innerHTML += `
+            <tr class='bg-info'>
+              <th>Nome</th>   
+              <th>E-mail</th>   
+              <th>Peso</th>
+              <th>Altura</th> 
+              <th>Sexo</th>     
+              <th>Opções</th>
+            </tr>
+    `
+    snapshot.forEach(item => {
+      //Dados do Firebase
+      let db = item.ref._delegate._path.pieces_[0] //nome da collection
+      let id = item.ref._delegate._path.pieces_[1] //id do registro
+      //Criando as novas linhas da tabela
+      let novaLinha = tabela.insertRow() //insere uma nova linha na tabela
+      novaLinha.insertCell().textContent = item.val().nome
+      novaLinha.insertCell().textContent = item.val().email
+      novaLinha.insertCell().textContent = item.val().peso
+      novaLinha.insertCell().textContent = item.val().altura
+      novaLinha.insertCell().textContent = item.val().sexo
+      novaLinha.insertCell().innerHTML = `<button class='btn btn-sm btn-danger' title='Apaga o cliente selecionado' onclick=remover('${db}','${id}')> <i class='bi bi-trash'></i> </button>
+                                          <button class='btn btn-sm btn-warning' title='Edita o cliente selecionado' onclick=carregaDadosAlteracao('${db}','${id}')> <i class='bi bi-pencil-square'></i> </button>`
+    })
+  })
+  //ocultamos o botão Carregando...
+  spinner.classList.add('d-none')
+}
+
 async function remover(db, id) {
-    if (window.confirm("⚠️Confirma a exclusão do registro?")) {
-      let dadoExclusao = await firebase.database().ref().child(db + '/' + id)
-      dadoExclusao.remove()
-        .then(() => {
-          alerta('✅ Registro removido com sucesso!', 'success')
-        })
-        .catch(error => {
-          console.error(error.code)
-          console.error(error.message)
-          alerta('❌ Falha ao excluir: ' + error.message, 'danger')
-        })
+  if (window.confirm('⚠ Confirma a exclusão do cliente?')) {
+    let dadosExclusao = await firebase.database().ref().child(db + '/' + id)
+    dadosExclusao.remove()
+      .then(() => {
+        alerta('✅Cliente removido com sucesso!', 'success')
+      })
+      .catch(error => {
+        alerta(`❌Falha ao apagar o cliente: ${error.message}`)
+      })
+  }
+}
+
+async function carregaDadosAlteracao(db, id) {
+  await firebase.database().ref(db + '/' + id).on('value', (snapshot) => {
+    document.getElementById('id').value = id
+    document.getElementById('nome').value = snapshot.val().nome
+    document.getElementById('email').value = snapshot.val().email
+    document.getElementById('peso').value = snapshot.val().peso
+    document.getElementById('altura').value = snapshot.val().altura
+    document.getElementById('nascimento').value = snapshot.val().nascimento
+    if (snapshot.val().sexo === 'Feminino') {
+      document.getElementById('sexo-1').checked = true
+    } else {
+      document.getElementById('sexo-0').checked = true //Masculino
     }
+  })
+  document.getElementById('nome').focus() //Definimos o foco no campo nome
+}
+
+function filtrarTabela(idFiltro, idTabela) {
+  // Obtém os elementos HTML
+  var input = document.getElementById(idFiltro); // Input de texto para pesquisa
+  var filter = input.value.toUpperCase(); // Valor da pesquisa em maiúsculas
+  var table = document.getElementById(idTabela); // Tabela a ser filtrada
+  var tr = table.getElementsByTagName("tr"); // Linhas da tabela
+
+  // Oculta todas as linhas da tabela inicialmente (exceto o cabeçalho)
+  for (var i = 1; i < tr.length; i++) { // Começa em 1 para ignorar o cabeçalho
+    tr[i].style.display = "none"; // Oculta a linha
   }
 
-/**
- * Filtra os elementos de uma tabela com base no valor inserido em um campo de filtro.
- *
- * @param {string} idFiltro - O ID do campo de filtro de entrada.
- * @param {string} idTabela - O ID da tabela que será filtrada.
- */
-function filtrarTabela(idFiltro, idTabela) {
-    var input, filter, table, tr, td, i, j, txtValue;
-    input = document.getElementById(idFiltro);
-    filter = input.value.toUpperCase();
-    table = document.getElementById(idTabela);
-    tr = table.getElementsByTagName("tr");
-  
-    for (i = 1; i < tr.length; i++) {
-      tr[i].style.display = "none"; // Oculte todas as linhas do corpo da tabela inicialmente.
-      for (j = 0; j < tr[i].cells.length; j++) {
-        td = tr[i].cells[j];
-        if (td) {
-          txtValue = td.textContent || td.innerText;
-          if (txtValue.toUpperCase().indexOf(filter) > -1) {
-            tr[i].style.display = ""; // Exiba a linha se houver correspondência.
-            break; // Saia do loop interno quando encontrar uma correspondência.
-          }
+  // Filtra cada linha da tabela
+  for (var i = 1; i < tr.length; i++) { // Começa em 1 para ignorar o cabeçalho
+    for (var j = 0; j < tr[i].cells.length; j++) { // Percorre as células da linha
+      var td = tr[i].cells[j]; // Célula atual
+      if (td) { // Verifica se a célula existe
+        var txtValue = td.textContent || td.innerText; // Conteúdo da célula
+        txtValue = txtValue.toUpperCase(); // Conteúdo da célula em maiúsculas
+
+        // Verifica se o valor da pesquisa está presente no conteúdo da célula
+        if (txtValue.indexOf(filter) > -1) {
+          tr[i].style.display = ""; // Exibe a linha se houver correspondência
+          break; // Sai do loop interno quando encontrar uma correspondência
         }
       }
     }
   }
+}
