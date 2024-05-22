@@ -25,6 +25,10 @@ Este projeto foi desenvolvido na disciplina de Programação para a Internet. O 
 - JavaScript
 - Firebase
 
+## ✨Deploy do Projeto
+
+Acesse: https://fatecitu.github.io/crudFirebase/
+
 ## ▶️ Como Executar o Projeto
 
 1. Clone o repositório:
